@@ -12,6 +12,7 @@ class DropBlockEditor extends Component
     public $initialRender = true;
 
     public $title;
+    public $form;
 
     public $base = 'dropblockeditor::base';
 
@@ -105,6 +106,7 @@ class DropBlockEditor extends Component
 
     public function process(): void
     {
+
         $this->result = Parse::execute([
             'activeBlocks' => $this->activeBlocks,
             'base' => $this->base,
@@ -123,6 +125,11 @@ class DropBlockEditor extends Component
     public function cloneBlock(): void
     {
         $clone = $this->activeBlocks[$this->activeBlockIndex];
+
+        if(!empty($clone['data']['uuid'])){
+
+            $clone['data']['uuid'] = Str::uuid()->toString();
+        }
 
         $this->activeBlocks[] = $clone;
 
@@ -159,6 +166,13 @@ class DropBlockEditor extends Component
 
     public function mount(): void
     {
+
+        if($this->form->formFields->count() > 0 ){
+            foreach($this->form->formFields as $field){
+                $this->activeBlocks[] = json_decode($field->data, true);
+            }
+        }
+
         $this->parsers = config('dropblockeditor.parsers', []);
 
         $this->blocks = collect(! is_null($this->blocks) ? $this->blocks : config('dropblockeditor.blocks', []))
@@ -170,6 +184,8 @@ class DropBlockEditor extends Component
         $this->updateHash();
 
         $this->recordInHistory();
+
+        
     }
 
     public function reorder($ids): void
@@ -215,6 +231,7 @@ class DropBlockEditor extends Component
             'base' => $this->base,
             'parsers' => $this->parsers,
             'activeBlocks' => $this->activeBlocks,
+            'form' => $this->form,
         ];
     }
 
